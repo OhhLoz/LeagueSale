@@ -1,9 +1,14 @@
 //    LIBRARIES & FUNCTIONS
-const Discord = require('discord.js');
-const client = new Discord.Client({ intents: [Discord.Intents.FLAGS.GUILDS] });
-const func = require("./functions.js");
+const { Client, Collection, MessageEmbed, GatewayIntentBits } = require('discord.js');
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds
+  ],
+});
+const { checkCounts } = require("./functions.js");
+const fs = require("fs");
 
-var TESTING = false;
+var TESTING = true;
 
 //    DATA IMPORT
 const package = require("./package.json");
@@ -42,7 +47,7 @@ const commandFiles = fs.readdirSync("./commands").filter(file => file.endsWith("
 
 const commandsArr = [];
 
-client.commands = new Discord.Collection();
+client.commands = new Collection();
 
 for (const file of commandFiles)
 {
@@ -53,39 +58,40 @@ for (const file of commandFiles)
 
 console.log(`Loaded ${commandsArr.length} commands`);
 
-client.on("ready", () =>
+client.on("ready", async () =>
 {
   //  STATISTICS GATHERING
   client.guilds.cache.forEach((guild) =>
   {
     if (guild.id == "264445053596991498" || guild.id == GLOBALS.devServerGuildID) //top.gg discord guildID & dev server guildID
       return;
-    GLOBALS.counts = func.checkCounts(guild, GLOBALS.counts, true);
+    GLOBALS.counts = checkCounts(guild, GLOBALS.counts, true);
   })
 
   GLOBALS.leagueIMG = client.user.displayAvatarURL();
 
   const guild = client.guilds.cache.get(GLOBALS.devServerGuildID); //development server guildID
+  //const guild = await client.guilds.fetch(GLOBALS.devServerGuildID); //development server guildID
 
   if(TESTING)
     guild.commands.set(commandsArr);
   else
-    client.application.commands.set(commandsArr);
+    client.commands.set(commandsArr);
 
-  console.log(`LeagueSalesBot v${GLOBALS.version} is currently serving ${GLOBALS.counts.usercount} users, in ${GLOBALS.counts.channelcount} channels of ${GLOBALS.counts.servercount} servers. Alongside ${GLOBALS.counts.botcount} bot brothers.`);
+  console.log(`LeagueSalesBot v${GLOBALS.version} is currently serving ${GLOBALS.counts.usercount} users, in ${GLOBALS.counts.channelcount} channels of ${GLOBALS.counts.servercount} servers.`);
   client.user.setActivity(`${GLOBALS.counts.servercount} servers | /help`, { type: 'WATCHING' });
 });
 
 client.on("guildCreate", guild =>
 {
-  GLOBALS.counts = func.checkCounts(guild, GLOBALS.counts, true);
+  GLOBALS.counts = checkCounts(guild, GLOBALS.counts, true);
   console.log(`New guild joined: ${guild.name} (id: ${guild.id}). This guild has ${guild.memberCount} members! Guild Count:${GLOBALS.counts.servercount}`);
   client.user.setActivity(`${GLOBALS.counts.servercount} servers | /help`, { type: 'WATCHING' });
 });
 
 client.on("guildDelete", guild =>
 {
-  GLOBALS.counts = func.checkCounts(guild, GLOBALS.counts, false);
+  GLOBALS.counts = checkCounts(guild, GLOBALS.counts, false);
   console.log(`I have been removed from: ${guild.name} (id: ${guild.id}). This guild had ${guild.memberCount} members! Guild Count:${GLOBALS.counts.servercount}`);
   client.user.setActivity(`${GLOBALS.counts.servercount} servers | /help`, { type: 'WATCHING' });
 });
@@ -102,6 +108,7 @@ client.on("interactionCreate", async (interaction) =>
 
   try
   {
+    await interaction.deferReply();
     await command.execute(interaction, client, GLOBALS);
   }
   catch(err)
@@ -110,7 +117,7 @@ client.on("interactionCreate", async (interaction) =>
     if (err)
       console.log(err);
 
-    var embed = new Discord.MessageEmbed()
+    var embed = new MessageEmbed()
     .setTitle("Error Occurred")
     .setColor(0x00AE86)
     .setTimestamp()

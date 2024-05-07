@@ -1,11 +1,11 @@
-const { SlashCommandBuilder } = require("@discordjs/builders");
-const { MessageEmbed } = require('discord.js');
+const { SlashCommandBuilder, MessageEmbed } = require("discord.js");
 
 module.exports =
 {
 	data: new SlashCommandBuilder()
 		.setName("help")
-		.setDescription("Lists all bot commands"),
+		.setDescription("Lists all bot commands")
+        .setDMPermission(false),
     async execute(interaction, client, GLOBALS)
     {
         var embed = new MessageEmbed()

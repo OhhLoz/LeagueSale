@@ -1,10 +1,11 @@
-const { SlashCommandBuilder } = require("@discordjs/builders");
+const { SlashCommandBuilder } = require("discord.js");
 
 module.exports =
 {
 	data: new SlashCommandBuilder()
 		.setName("ping")
-		.setDescription("Displays the current ping to the bot & the Discord API"),
+		.setDescription("Displays the current ping to the bot & the Discord API")
+        .setDMPermission(false),
 	async execute(interaction, client, GLOBALS)
     {
         try
