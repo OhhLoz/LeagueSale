@@ -1,12 +1,15 @@
 //    LIBRARIES & FUNCTIONS
-const { Client, Collection, MessageEmbed, GatewayIntentBits } = require('discord.js');
+const { Client, Collection, EmbedBuilder, GatewayIntentBits } = require('discord.js');
 const client = new Client({
   intents: [
-    GatewayIntentBits.Guilds
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMessageReactions
   ],
 });
 const { checkCounts } = require("./functions.js");
 const fs = require("fs");
+// const ytnotifier = require('youtube-notifier');
 
 var TESTING = true;
 
@@ -32,16 +35,26 @@ var GLOBALS =
   titleSpacer: "\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800",
   leagueIMG: "",
   footerText: "Sent by LeagueSalesBot",
-  devServerGuildID: "1236376882648191006",
+  IDs:
+  {
+    topggServerGuildID: "264445053596991498",
+    devServerGuildID: "1236376882648191006",
+    leagueSkinsChannelID: "UCC51gGlPcbhs6tceufvOLOQ",
+  },
   links:
   {
     repo: "https://github.com/OhhLoz/LeagueSalesBot",
     invite: "https://discord.com/oauth2/authorize?client_id=1236368770805530685",
-    donate: "",
+    donate: "https://ko-fi.com/ohhloz",
     topgg: "",
     server: "https://discord.gg/XBxqTJpGw8"
   }
 }
+
+// const Notifier = new ytnotifier({
+//   channels: [GLOBALS.IDs.leagueSkinsChannelID],
+//   checkInterval: 50
+// });
 
 const commandFiles = fs.readdirSync("./commands").filter(file => file.endsWith(".js"));
 
@@ -63,14 +76,14 @@ client.on("ready", async () =>
   //  STATISTICS GATHERING
   client.guilds.cache.forEach((guild) =>
   {
-    if (guild.id == "264445053596991498" || guild.id == GLOBALS.devServerGuildID) //top.gg discord guildID & dev server guildID
+    if (guild.id == GLOBALS.IDs.topggServerGuildID || guild.id == GLOBALS.IDs.devServerGuildID)
       return;
     GLOBALS.counts = checkCounts(guild, GLOBALS.counts, true);
   })
 
   GLOBALS.leagueIMG = client.user.displayAvatarURL();
 
-  const guild = client.guilds.cache.get(GLOBALS.devServerGuildID); //development server guildID
+  const guild = client.guilds.cache.get(GLOBALS.IDs.devServerGuildID); //development server guildID
   //const guild = await client.guilds.fetch(GLOBALS.devServerGuildID); //development server guildID
 
   if(TESTING)
@@ -81,6 +94,19 @@ client.on("ready", async () =>
   console.log(`LeagueSalesBot v${GLOBALS.version} is currently serving ${GLOBALS.counts.usercount} users, in ${GLOBALS.counts.channelcount} channels of ${GLOBALS.counts.servercount} servers.`);
   client.user.setActivity(`${GLOBALS.counts.servercount} servers | /help`, { type: 'WATCHING' });
 });
+
+// Notifier.on('video', async video => {
+//   console.log(video);
+//   /*
+//   video = {
+//       channelName,
+//       title,
+//       publishDate,
+//       url,
+//       id
+//   };
+//   */
+// });
 
 client.on("guildCreate", guild =>
 {
@@ -117,7 +143,7 @@ client.on("interactionCreate", async (interaction) =>
     if (err)
       console.log(err);
 
-    var embed = new MessageEmbed()
+    var embed = new EmbedBuilder()
     .setTitle("Error Occurred")
     .setColor(0x00AE86)
     .setTimestamp()

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, MessageEmbed } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 
 module.exports =
 {
@@ -8,7 +8,7 @@ module.exports =
         .setDMPermission(false),
     async execute(interaction, client, GLOBALS)
     {
-        var embed = new MessageEmbed()
+        var embed = new EmbedBuilder()
         .setTitle("Help")
         .setColor(0xff8d00)
         .setTimestamp()
